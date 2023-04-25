@@ -1,7 +1,10 @@
-import numpy as np
-import Data_loader
 
-def get_Fully_Connected_Graph(points, sigma=1):
+import numpy as np
+from utility_tools import *
+import scipy
+
+
+def get_Fully_Connected_Graph(points, sigma=-1):
     """ Compute W matrix of a fully connected graph using Gaussian similarity with parameter sigma
 
     Args: 
@@ -15,8 +18,21 @@ def get_Fully_Connected_Graph(points, sigma=1):
     # compute pair-wise squared distances
     W = np.sum( np.square(points[:, None, :] - points[None, :, :]), axis=-1 )
 
+
+    # if sigma not specified - compute sigma from spanning tree
+    if sigma == -1:
+        
+        distanceMatrix = np.sqrt(W)
+        spanTree = scipy.sparse.csgraph.minimum_spanning_tree(distanceMatrix, overwrite=True)
+
+        # sigma = scipy.ndimage.median(spanTree)
+        sigma = spanTree.mean()
+
+
+    print(sigma)
+
     # compute similarity
-    W = np.exp( - W / (2*np.square(sigma)) )
+    W = np.exp( - W / (2*np.square(sigma)) )        
 
     return W
 
@@ -57,7 +73,7 @@ def get_Graph_Laplacian(W, type='unNormalized'):
 
 if __name__ == '__main__':
 
-    points = Data_loader.load_data('./data/spectral_data/points_data.mat', clusterInd=3)
+    points = load_data('../data/spectral_data/points_data.mat', clusterInd=1)
 
     W = get_Fully_Connected_Graph(points, sigma=1)
 
@@ -66,6 +82,7 @@ if __name__ == '__main__':
     L = get_Graph_Laplacian(W, type='randomWalk')
 
 
-    
+    import Eigen_Solver
+    Eigen_Solver.compute_Eigen_Vectors(L, k=2)
 
 
