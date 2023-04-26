@@ -18,17 +18,30 @@ def spectral_Clustering(data, k, sigma, graphType='unNormalized'):
 
 
     # create graph of similarites
-    # W = Graph_Laplacian.get_Fully_Connected_Graph(data, sigma=sigma)
-    W = Graph_Laplacian.get_Fully_Connected_Graph(data)   
+    W = Graph_Laplacian.get_Fully_Connected_Graph(data, sigma=sigma)
+    # W = Graph_Laplacian.get_Fully_Connected_Graph(data)   
     L = Graph_Laplacian.get_Graph_Laplacian(W, type=graphType)
 
     # compute k smallest eigen vectors
     eigen_values, eigen_vectors = Eigen_Solver.compute_Eigen_Vectors(L, k=k)
 
+
+    print(eigen_vectors[:, 1][:10])
+
+
     # cluster the data
     kmeans = sklearn.cluster.KMeans(n_clusters=k, n_init='auto').fit(eigen_vectors)
 
     labels = kmeans.labels_
+
+    # TODO: normalize over rows!!! in the L_sym
+
+    # print(eigen_vectors[:, 1] [np.where(labels == 0)] )
+
+    # print(eigen_vectors[:, 1] [np.where(labels == 1)] )
+
+    # print(eigen_vectors[:, 2] [np.where(labels == 2)] )
+
 
     return labels
 
@@ -45,7 +58,7 @@ if __name__ == "__main__":
     # points = Data_loader.load_data('../data/spectral_data/points_data.mat', clusterInd=1)
     # labels = spectral_Clustering(points, k=3, sigma=0.25, graphType='unNormalized')
     # labels = spectral_Clustering(points, k=3, sigma=0.35, graphType='symmetric')
-    # labels = spectral_Clustering(points, k=3, sigma=0.59, graphType='randomWalk')
+    # labels = spectral_Clustering(points, k=3, sigma=0.1, graphType='randomWalk')
 
 
     # cluster 0
