@@ -26,12 +26,11 @@ def spectral_Clustering(data, k, sigma, graphType='unNormalized'):
     eigen_values, eigen_vectors = Eigen_Solver.compute_Eigen_Vectors(L, k=k)
 
     # cluster the data
-    kmeans = sklearn.cluster.KMeans(n_clusters=k, n_init='auto').fit(eigen_vectors)
+    kmeans = sklearn.cluster.KMeans(n_clusters=k, n_init=10).fit(eigen_vectors)
 
     labels = kmeans.labels_
 
     return labels
-
 
 
 

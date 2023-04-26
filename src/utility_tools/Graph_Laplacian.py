@@ -21,10 +21,11 @@ def get_Fully_Connected_Graph(points, sigma=-1):
 
     # if sigma not specified - compute sigma from spanning tree
     if sigma == -1:
-        
+        n = points.shape[0]
+        k = np.log2(n) + 1
         distanceMatrix = np.sqrt(W)
         spanTree = scipy.sparse.csgraph.minimum_spanning_tree(distanceMatrix, overwrite=True)
-
+        
         # sigma = scipy.ndimage.median(spanTree)
         sigma = spanTree.mean()
 
