@@ -2,6 +2,7 @@
 import numpy as np
 from utility_tools import *
 import scipy
+import skimage
 from sklearn.neighbors import NearestNeighbors
 
 
@@ -43,6 +44,37 @@ def get_Fully_Connected_Graph(points, sigma=-1):
 
     return W
 
+def get_fully_connected_graph_image(image, sigma_i, sigma_x, r):
+    """ Compute W matrix of a fully connected graph using Gaussian similarity with parameter sigma
+    
+    Args:
+        image: (N, M) numpy array, N is the number of rows, M is the number of columns
+        sigma_i: scalar, standard deviation of Gaussian similarity in intensity domain
+        sigma_x: scalar, standard deviation of Gaussian similarity in spatial domain
+        r: scalar, radius of spatial domain
+
+    Returns:
+        W: (N*M, N*M) numpy array, W[i, j] is the similarity between point i and point j
+    
+    """
+
+ 
+ 
+    image = image[125:145, :20]
+    n = image.shape[0]
+    m = image.shape[1]
+    x = np.arange(0, n)
+    y = np.arange(0, m)
+    xv, yv = np.meshgrid(x, y)
+    points = np.stack([yv, xv], axis=-1).reshape(-1, 2)
+    X_distance = np.sum( np.square(points[:, None, :] - points[None, :, :]), axis=-1 )
+    intensity = image[points[:,0], points[:,1]]
+    I_distance = np.square(intensity.reshape(-1, 1) -  intensity.reshape(1, -1))
+    W = np.zeros_like(X_distance)
+    W = np.exp(-I_distance / np.square(sigma_i)) * np.exp(-X_distance / np.square(sigma_x)) * (X_distance < np.square(r))
+    #print(W.shape)
+    return W
+
 
 def get_Graph_Laplacian(W, type='unNormalized'):
     """ Compute Graph Laplacian matrix L from similarity matrix W
@@ -80,16 +112,18 @@ def get_Graph_Laplacian(W, type='unNormalized'):
 
 if __name__ == '__main__':
 
-    points = load_data('../data/spectral_data/points_data.mat', clusterInd=1)
+    # points = load_data('../data/spectral_data/points_data.mat', clusterInd=1)
 
-    W = get_Fully_Connected_Graph(points, sigma=1)
+    img = skimage.io.imread('../data/spectral_data/bag.png').astype(np.float32)
+    get_fully_connected_graph_image(img, sigma_i=1, sigma_x=1, r=1)
+    # W = get_Fully_Connected_Graph(points, sigma=1)
 
     # L = get_Graph_Laplacian(W, type='unNormalized')
     # L = get_Graph_Laplacian(W, type='symmetric')
-    L = get_Graph_Laplacian(W, type='randomWalk')
+    # L = get_Graph_Laplacian(W, type='randomWalk')
 
 
-    import Eigen_Solver
-    Eigen_Solver.compute_Eigen_Vectors(L, k=2)
+    # import Eigen_Solver
+    # Eigen_Solver.compute_Eigen_Vectors(L, k=2)
 
 
