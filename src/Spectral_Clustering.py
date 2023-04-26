@@ -18,8 +18,8 @@ def spectral_Clustering(data, k, sigma, graphType='unNormalized'):
 
 
     # create graph of similarites
-    W = Graph_Laplacian.get_Fully_Connected_Graph(data, sigma=sigma)
-    # W = Graph_Laplacian.get_Fully_Connected_Graph(data)
+    # W = Graph_Laplacian.get_Fully_Connected_Graph(data, sigma=sigma)
+    W = Graph_Laplacian.get_Fully_Connected_Graph(data)   
     L = Graph_Laplacian.get_Graph_Laplacian(W, type=graphType)
 
     # compute k smallest eigen vectors
@@ -49,15 +49,14 @@ if __name__ == "__main__":
 
 
     # cluster 0
-    points = Data_loader.load_data('../data/spectral_data/points_data.mat', clusterInd=0)
+    # points = Data_loader.load_data('../data/spectral_data/points_data.mat', clusterInd=0)
     # # labels = spectral_Clustering(points, k=3, sigma=0.25, graphType='unNormalized')
-    labels = spectral_Clustering(points, k=3, sigma=0.35, graphType='symmetric')
+    # labels = spectral_Clustering(points, k=3, sigma=0.35, graphType='symmetric')
     # labels = spectral_Clustering(points, k=3, sigma=0.25, graphType='randomWalk')
 
-    # points = Data_loader.load_data('../data/spectral_data/points_data.mat', clusterInd=2)
-    # doesnt work ???
+    points = Data_loader.load_data('../data/spectral_data/points_data.mat', clusterInd=2)
     # labels = spectral_Clustering(points, k=2, sigma=0.4, graphType='unNormalized')
-    # labels = spectral_Clustering(points, k=2, sigma=0.03, graphType='symmetric')
+    labels = spectral_Clustering(points, k=2, sigma=0.03, graphType='symmetric')
     # labels = spectral_Clustering(points, k=2, sigma=1, graphType='randomWalk')
 
 
@@ -69,7 +68,7 @@ if __name__ == "__main__":
 
     # points = Data_loader.load_data('../data/spectral_data/points_data.mat', clusterInd=4)    
     # labels = spectral_Clustering(points, k=2, sigma=0.2, graphType='unNormalized')
-    # labels = spectral_Clustering(points, k=2, sigma=0.1, graphType='symmetric')
+    # labels = spectral_Clustering(points, k=2, sigma=0.05, graphType='symmetric')
     # labels = spectral_Clustering(points, k=2, sigma=0.12, graphType='randomWalk')
 
 
