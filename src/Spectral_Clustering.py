@@ -69,21 +69,21 @@ def spectral_Segmentation(image, k, sigma_i, sigma_x, r,  graphType='unNormalize
 
     # create graph of similarites
     # W = Graph_Laplacian.get_Fully_Connected_Graph(data, sigma=sigma)
-    W =  Graph_Laplacian.get_fully_connected_graph_image(image, sigma_i=1, sigma_x=1, r=5)
+    W =  Graph_Laplacian.get_connected_graph_image(image, sigma_i=1, sigma_x=1, r=5)
     # W = Graph_Laplacian.get_Fully_Connected_Graph(data)   
-    L = Graph_Laplacian.get_Graph_Laplacian(W, type=graphType)
+    L = Graph_Laplacian.get_Sparse_Graph_Laplacian(W, type=graphType)
 
     # compute k smallest eigen vectors
-    eigen_values, eigen_vectors = Eigen_Solver.compute_Eigen_Vectors(L, k=k)
+    eigen_values, eigen_vectors = Eigen_Solver.compute_Eigen_Sparse_Vectors(L, k=k)
 
 
-    #print(eigen_vectors[:, 1][:10])
+    print(eigen_vectors[:, 1][:10])
 
 
     # cluster the data
-    kmeans = sklearn.cluster.KMeans(n_clusters=k, n_init=10).fit(eigen_vectors)
+    # kmeans = sklearn.cluster.KMeans(n_clusters=k, n_init=10).fit(eigen_vectors)
 
-    labels = kmeans.labels_
+    # labels = kmeans.labels_
 
     # TODO: normalize over rows!!! in the L_sym
 
@@ -94,7 +94,7 @@ def spectral_Segmentation(image, k, sigma_i, sigma_x, r,  graphType='unNormalize
     # print(eigen_vectors[:, 2] [np.where(labels == 2)] )
 
 
-    return labels
+    return None
 
 
 
