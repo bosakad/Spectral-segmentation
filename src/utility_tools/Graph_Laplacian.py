@@ -46,6 +46,22 @@ def get_Fully_Connected_Graph(points, sigma=-1):
 
     return W
 
+
+def get_connected_graph_image_brute_force(image, sigma_i, sigma_x, r):
+    n = image.shape[0]
+    m = image.shape[1]
+    x = np.arange(0, n)
+    y = np.arange(0, m)
+    xv, yv = np.meshgrid(x, y)
+    points = np.stack([yv, xv], axis=-1).reshape(-1, 2)
+    X_distance = np.sum( np.square(points[:, None, :] - points[None, :, :]), axis=-1 )
+    intensity = image[points[:,0], points[:,1]]
+    I_distance = np.square(intensity.reshape(-1, 1) -  intensity.reshape(1, -1))
+    W = np.zeros_like(X_distance)
+    W = np.exp(-I_distance / np.square(sigma_i)) * np.exp(-X_distance / np.square(sigma_x)) * (X_distance < np.square(r))
+
+    return W
+
 def get_connected_graph_image(image, sigma_i, sigma_x, r):
     """ Compute W matrix of a fully connected graph using Gaussian similarity with parameter sigma
     
