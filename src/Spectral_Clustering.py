@@ -111,7 +111,7 @@ if __name__ == "__main__":
 
     img = skimage.io.imread('../data/spectral_data/bag.png').astype(np.float32)
     print("starting segmentation")
-    img = img[125:145, :20]
+    # img = img[125:145, :20]
     img = img / 255
     labels = spectral_Segmentation(img, k=2, sigma_i=0.4, sigma_x=3, r=5, graphType='symmetric')
     plt.imshow(labels.reshape(img.shape), cmap='gray')
