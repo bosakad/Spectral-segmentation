@@ -76,14 +76,14 @@ def spectral_Segmentation(image, k, sigma_i, sigma_x, r,  graphType='unNormalize
     # compute k smallest eigen vectors
     eigen_values, eigen_vectors = Eigen_Solver.compute_Eigen_Sparse_Vectors(L, k=k)
 
-
+    print(eigen_values)
     print(eigen_vectors[:, 1][:10])
 
 
     # cluster the data
-    # kmeans = sklearn.cluster.KMeans(n_clusters=k, n_init=10).fit(eigen_vectors)
+    kmeans = sklearn.cluster.KMeans(n_clusters=k, n_init=10).fit(eigen_vectors)
 
-    # labels = kmeans.labels_
+    labels = kmeans.labels_
 
     # TODO: normalize over rows!!! in the L_sym
 
@@ -94,7 +94,7 @@ def spectral_Segmentation(image, k, sigma_i, sigma_x, r,  graphType='unNormalize
     # print(eigen_vectors[:, 2] [np.where(labels == 2)] )
 
 
-    return None
+    return labels
 
 
 
@@ -108,10 +108,11 @@ if __name__ == "__main__":
     # cluster 1
     # points = Data_loader.load_data('../data/spectral_data/points_data.mat', clusterInd=1)
     # labels = spectral_Clustering(points, k=3, sigma=0.25, graphType='unNormalized')
-    print(img.max())
+    print("starting segmentation")
     img = img / 255
-    labels = spectral_Segmentation(img, k=3, sigma_i=0.4, sigma_x=3, r=5, graphType='symmetric')
-    plt.imshow(labels.reshape(20, 20))
+    labels = spectral_Segmentation(img, k=2, sigma_i=0.4, sigma_x=3, r=5, graphType='symmetric')
+    print(labels.shape)
+    plt.imshow(labels.reshape(img.shape))
     plt.show()
     # labels = spectral_Clustering(points, k=3, sigma=0.1, graphType='randomWalk')
 
