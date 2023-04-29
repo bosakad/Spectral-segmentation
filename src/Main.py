@@ -45,17 +45,16 @@ def main_clustering():
 
 def main_segmentation():
 
-    img = skimage.io.imread('../data/spectral_data/plane.jpg').astype(np.float32)
+    # img = skimage.io.imread('../data/spectral_data/plane.jpg').astype(np.float32)
+    img = skimage.io.imread('../data/spectral_data/hair.png').astype(np.float32)
     # img = skimage.io.imread('../data/spectral_data/test_blob_uniform.png').astype(np.float32)
     # img = skimage.io.imread('../data/spectral_data/onion.png').astype(np.float32)
     # img = skimage.io.imread('../data/spectral_data/peppers.png').astype(np.float32)
     img = img / 255
 
-    # img = img[0:140, 0:140]
+    print(img.shape)
 
-    # img = skimage.color.gray2rgb(img)
-    # print(img.shape)
-
+    img = img[500:900, 500:900, :]
 
     # plt.imshow(img)
     # plt.show()
@@ -74,7 +73,8 @@ def main_segmentation():
     # plt.show()
 
     # labels = Spectral_Clustering.spectral_Segmentation(img, k=2, sigma_i=0.02, sigma_x=1.5, r=2, graphType='symmetric')
-    labels = Spectral_Clustering.spectral_Segmentation(imgDownScaled, k=4, sigma_i=0.04, sigma_x=2, r=2, graphType='symmetric')
+    # labels = Spectral_Clustering.spectral_Segmentation(imgDownScaled, k=4, sigma_i=0.04, sigma_x=2, r=2, graphType='symmetric') # good for plane
+    labels = Spectral_Clustering.spectral_Segmentation(imgDownScaled, k=2, sigma_i=0.0005, sigma_x=30, r=40, graphType='symmetric') # hair
 
 
     # upscale - how to do that?
