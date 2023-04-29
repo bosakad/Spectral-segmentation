@@ -48,19 +48,64 @@ def get_Fully_Connected_Graph(points, sigma=-1):
 
 
 def get_connected_graph_image_brute_force(image, sigma_i, sigma_x, r):
+    
     n = image.shape[0]
     m = image.shape[1]
+    
     x = np.arange(0, n)
     y = np.arange(0, m)
+
+    # compute X distances mesh grid
     xv, yv = np.meshgrid(x, y)
     points = np.stack([yv, xv], axis=-1).reshape(-1, 2)
     X_distance = np.sum( np.square(points[:, None, :] - points[None, :, :]), axis=-1 )
+    
+    print(X_distance.shape)
+
+    # compute intensity distances mesh grid
     intensity = image[points[:,0], points[:,1]]
     I_distance = np.square(intensity.reshape(-1, 1) -  intensity.reshape(1, -1))
+
+    print(I_distance.shape)
+
     W = np.zeros_like(X_distance)
     W = np.exp(-I_distance / np.square(sigma_i)) * np.exp(-X_distance / np.square(sigma_x)) * (X_distance < np.square(r))
 
     return W
+
+def get_connected_graph_image_brute_force_3D(image, sigma_i, sigma_x, r):
+    
+    # check type of the image
+    if len(image.shape) == 3:  rgb = True
+    else:                      rgb = False
+
+    n = image.shape[0]
+    m = image.shape[1]
+    
+    x = np.arange(0, n)
+    y = np.arange(0, m)
+
+    # compute X distances mesh grid
+    xv, yv = np.meshgrid(x, y)
+    points = np.stack([yv, xv], axis=-1).reshape(-1, 2)
+    X_distance = np.sum( np.square(points[:, None, :] - points[None, :, :]), axis=-1 ) 
+    
+    print(X_distance.shape)
+
+    # compute intensity distances mesh grid
+    intensity = image[points[:,0], points[:,1]]
+    if rgb:
+        I_distance = np.sum( np.square(intensity.reshape(-1, 1, 3) -  intensity.reshape(1, -1, 3)) , axis=-1)
+    else:
+        I_distance = np.square(intensity.reshape(-1, 1) -  intensity.reshape(1, -1))
+
+    print(I_distance.shape)
+
+    W = np.zeros_like(X_distance)
+    W = np.exp(-I_distance / np.square(sigma_i)) * np.exp(-X_distance / np.square(sigma_x)) * (X_distance < np.square(r))
+
+    return W
+
 
 def get_connected_graph_image(image, sigma_i, sigma_x, r):
     """ Compute W matrix of a fully connected graph using Gaussian similarity with parameter sigma
@@ -76,13 +121,19 @@ def get_connected_graph_image(image, sigma_i, sigma_x, r):
     
     """
 
+    print(image.shape)
+
     n = image.shape[0]
     m = image.shape[1]
+
+
     x = np.arange(0, m)
     y = np.arange(0, n)
     xv, yv = np.meshgrid(x, y)
     p_xv = np.pad(xv, r, constant_values=-1)
     p_yv = np.pad(yv, r, constant_values=-1)
+
+
     index = torch.FloatTensor(xv + m * yv).view(1, n, m)
     p_index = torch.FloatTensor(p_xv + m * p_yv).view(1, n + 2 * r, m + 2 * r)
     p_image = torch.FloatTensor(np.pad(image, r, constant_values=-1)).unsqueeze(0)
@@ -107,6 +158,78 @@ def get_connected_graph_image(image, sigma_i, sigma_x, r):
     data = np.exp(-intensity_data / np.square(sigma_i)) * np.exp(-distance_data / np.square(sigma_x))
     W = bsr_matrix((data[col >= 0], (row[col >= 0], col[col >= 0])), shape=(n * m, n * m), dtype=np.float32)
     
+    return W
+
+
+def get_connected_graph_image_3D(image, sigma_i, sigma_x, r):
+    """ Compute W matrix of a fully connected graph using Gaussian similarity with parameter sigma
+    
+    Args:
+        image: (N, M) numpy array, N is the number of rows, M is the number of columns
+        sigma_i: scalar, standard deviation of Gaussian similarity in intensity domain
+        sigma_x: scalar, standard deviation of Gaussian similarity in spatial domain
+        r: scalar, radius of spatial domain
+
+    Returns:
+        W: (N*M, N*M) numpy array, W[i, j] is the similarity between point i and point j
+    
+    """
+
+
+    n = image.shape[0]
+    m = image.shape[1]
+    channels = image.shape[2]
+
+
+    x = np.arange(0, m)
+    y = np.arange(0, n)
+    xv, yv = np.meshgrid(x, y)
+
+    p_xv = np.pad(xv, r, constant_values=-1)
+    p_yv = np.pad(yv, r, constant_values=-1)
+
+    # print(xv[:20, :20])
+    # print(p_xv[:20, :20])
+    # exit()    
+
+    # create image tensors with padding
+    index = torch.FloatTensor(xv + m * yv).view(1, n, m)
+
+    xv = torch.FloatTensor(p_xv).view(1, n + 2 * r, m + 2 * r)
+    yv = torch.FloatTensor(p_yv).view(1, n + 2 * r, m + 2 * r)
+    size = 2 * r + 1
+    numK = size ** 2
+    kernel = torch.zeros(numK, 1, size, size, dtype=torch.float32)
+    for i in range(size):
+        for j in range(size):
+            kernel[i * size + j, 0, i, j] = 1
+
+    p_index = torch.FloatTensor(p_xv + m * p_yv).view(1, n + 2 * r, m + 2 * r)
+
+    W = None
+
+    for rgbEl in range(channels):
+
+        p_image = torch.FloatTensor(np.pad(image[:, :, rgbEl], r, constant_values=-1)).unsqueeze(0)
+        
+        with torch.no_grad():
+            out_x = torch.nn.functional.conv2d(xv, kernel)
+            out_y = torch.nn.functional.conv2d(yv, kernel)
+            out_image = torch.nn.functional.conv2d(p_image, kernel).numpy()
+            col = torch.nn.functional.conv2d(p_index, kernel).view(-1).numpy().astype(np.int32)
+            row = index.squeeze(0).tile(numK, 1, 1).view(-1).numpy().astype(np.int32)
+            intensity_data = (np.square(out_image - np.expand_dims(image[:, :, rgbEl], 0))).reshape(-1)
+            distance_data = (torch.square(out_x - xv[:, r:-r,r:-r]) + torch.square(out_y - yv[:, r:-r,r:-r])).view(-1).numpy()
+        
+        data = np.exp(-intensity_data / np.square(sigma_i)) * np.exp(-distance_data / np.square(sigma_x))
+
+        print(data.shape)
+
+        if W is None:
+            W = bsr_matrix((data[col >= 0], (row[col >= 0], col[col >= 0])), shape=(n * m, n * m), dtype=np.float32)
+        else:
+            W += bsr_matrix((data[col >= 0], (row[col >= 0], col[col >= 0])), shape=(n * m, n * m), dtype=np.float32)
+
     return W
 
 

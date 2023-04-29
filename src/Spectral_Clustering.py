@@ -1,4 +1,5 @@
 import numpy as np
+import sklearn.preprocessing
 import sklearn.cluster
 import skimage
 import matplotlib.pyplot as plt
@@ -32,19 +33,14 @@ def spectral_Clustering(data, k, sigma, graphType='unNormalized'):
     print(eigen_vectors[:, 1][:10])
 
 
+    # normalize over rows
+    if graphType == "symmetric":
+        eigen_vectors = sklearn.preprocessing.normalize(eigen_vectors, norm='l2', axis=1, copy=False)
+
+
     # cluster the data
     kmeans = sklearn.cluster.KMeans(n_clusters=k, n_init=10).fit(eigen_vectors)
-
     labels = kmeans.labels_
-
-    # TODO: normalize over rows!!! in the L_sym
-
-    # print(eigen_vectors[:, 1] [np.where(labels == 0)] )
-
-    # print(eigen_vectors[:, 1] [np.where(labels == 1)] )
-
-    # print(eigen_vectors[:, 2] [np.where(labels == 2)] )
-
 
     return labels
 
@@ -66,41 +62,45 @@ def spectral_Segmentation(image, k, sigma_i, sigma_x, r,  graphType='unNormalize
 
     """
 
+    # check type of the image
+    if len(image.shape) == 3:  rgb = True
+    else:                      rgb = False
+
 
     # create graph of similarites
-    W1 =  Graph_Laplacian.get_connected_graph_image(image, sigma_i=sigma_i, sigma_x=sigma_x, r=r)
-    # W2 =  Graph_Laplacian.get_connected_graph_image_brute_force(image, sigma_i=0.4, sigma_x=1, r=5)
+    if rgb:
+        W =  Graph_Laplacian.get_connected_graph_image_3D(image, sigma_i=sigma_i, sigma_x=sigma_x, r=r)
+        
+    else:
+        W =  Graph_Laplacian.get_connected_graph_image(image, sigma_i=sigma_i, sigma_x=sigma_x, r=r)
+        
     
-    # print(W1.toarray())
-    # print(W2)
+    L = Graph_Laplacian.get_Sparse_Graph_Laplacian(W, type=graphType)
     
-    L1 = Graph_Laplacian.get_Sparse_Graph_Laplacian(W1, type=graphType)
-    # L2 = Graph_Laplacian.get_Graph_Laplacian(W, type=graphType)
+    L = sklearn.preprocessing.normalize(L, norm='l2', axis=1, copy=False) # normalize over rows
+
+    print(L.mean())
 
     # compute k smallest eigen vectors
-    eigen_values, eigen_vectors = Eigen_Solver.compute_Eigen_Sparse_Vectors(L1, k=k)
-    # eigen_values, eigen_vectors = Eigen_Solver.compute_Eigen_Vectors(L1.todense(), k=k)
-    # eigen_values, eigen_vectors = Eigen_Solver.compute_Eigen_Vectors(L2, k=k)
+    eigen_values, eigen_vectors = Eigen_Solver.compute_Eigen_Sparse_Vectors(L, k=k)
 
-    print(eigen_values)
-    print(eigen_vectors[:, 1][:10])
+    # normalize over rows
+    # if graphType == "symmetric":
+    eigen_vectors = sklearn.preprocessing.normalize(eigen_vectors, norm='l2', axis=1, copy=False)
+
+    print(eigen_vectors.shape)
+
+    # print(eigen_vectors[:, 1][:10])
 
 
     # cluster the data
-    kmeans = sklearn.cluster.KMeans(n_clusters=k, n_init=10).fit(eigen_vectors)
-
+    kmeans = sklearn.cluster.KMeans(n_clusters=k, n_init=20).fit(eigen_vectors)
     labels = kmeans.labels_
 
-    # TODO: normalize over rows!!! in the L_sym
 
-    # print(eigen_vectors[:, 1] [np.where(labels == 0)] )
+    return labels.reshape((image.shape[0], image.shape[1]))
+    
 
-    # print(eigen_vectors[:, 1] [np.where(labels == 1)] )
-
-    # print(eigen_vectors[:, 2] [np.where(labels == 2)] )
-
-
-    return labels
 
 
 
@@ -109,13 +109,39 @@ def spectral_Segmentation(image, k, sigma_i, sigma_x, r,  graphType='unNormalize
 
 if __name__ == "__main__":
 
-    img = skimage.io.imread('../data/spectral_data/bag.png').astype(np.float32)
-    print("starting segmentation")
-    # img = img[125:145, :20]
+    # img = skimage.io.imread('../data/spectral_data/bag.png').astype(np.float32)
+    img = skimage.io.imread('../data/spectral_data/plane.jpg').astype(np.float32)
     img = img / 255
-    labels = spectral_Segmentation(img, k=2, sigma_i=0.4, sigma_x=3, r=5, graphType='symmetric')
-    plt.imshow(labels.reshape(img.shape), cmap='gray')
+
+    if len(img.shape) == 3:
+        rgb = True
+        img = img[0:300, 0:300, :]
+
+    # plt.imshow(img)
+    # plt.show()
+
+    # img = skimage.io.imread('../data/spectral_data/').astype(np.float32)
+    
+    # img = img[125:145, :20]
+    # img = img / 255
+    labels = spectral_Segmentation(img, k=2, sigma_i=0.03, sigma_x=2, r=3, graphType='symmetric')
+    # labels = spectral_Segmentation(img, k=2, sigma_i=1, sigma_x=3, r=5, graphType='unNormalized')
+
+
+    # plot
+    subplot, ax = plt.subplots(1, 3)
+
+    ax[0].imshow(img, cmap='gray')    
+    ax[1].imshow(labels, cmap='gray')
+    
+    imgSegmented = img.copy()
+    imgSegmented[labels == 0] = 0
+    ax[2].imshow(imgSegmented, cmap='gray') 
     plt.show()
+    
+    
+    # plt.imshow(labels.reshape(img.shape), cmap='gray')
+    # plt.show()
 
 
 

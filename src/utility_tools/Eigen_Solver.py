@@ -28,10 +28,13 @@ def compute_Eigen_Sparse_Vectors(L, k):
 
     # compute eigen vectors
 
+    print("computing eigen")
+
     # use the fact that the matrix is symmetric positive definite
     # IMPORTANT: if needs to use L matrix after - remove the overwrite_a=True !!
     # change tol value for more speed vs accuracy
-    eigen_values, eigen_vectors = scipy.sparse.linalg.eigsh(L, k=k, which='SM', tol=1e-1) 
+    # eigen_values, eigen_vectors = scipy.sparse.linalg.eigsh(L, k=k, which='SM', tol=1e-1) 
+    eigen_values, eigen_vectors = scipy.sparse.linalg.eigsh(L, k=k, which='SA', tol=0.0001) 
 
     return eigen_values, eigen_vectors
 
