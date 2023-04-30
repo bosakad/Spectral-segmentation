@@ -24,17 +24,14 @@ def Stochastic_Ensemble_Consensus(original_Image, labels):
 
 
     indices = DistanceMatrix.nonzero()[0]
-    probM = DistanceMatrix[indices].reshape((-1, windowSize))
+    probM = 1 / DistanceMatrix[indices].reshape((-1, windowSize**2))
 
     print(probM.shape)
 
-
-
-    # print(indices[0].shape)
-    # print(windowSize**2 * original_Image[:, :, 0].size)
-
     # make the segmentation better
     for i in range(numberOfIterations):
+
+        # draw from probM
 
         pass
         
