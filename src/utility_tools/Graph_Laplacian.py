@@ -233,6 +233,83 @@ def get_connected_graph_image_3D(image, sigma_i, sigma_x, r):
     return W
 
 
+
+
+def get_DistanceM_InfluenceMatrix(image, r, sigma):
+
+    """
+        Computes pairwise distances for each pixel in the image and then computes the spatially-adaptive PDF and influence matrix
+
+        Args:
+            image: (N, M) numpy array, N is the number of rows, M is the number of columns
+            window: scalar, window size for computing the spatially-adaptive PDF
+            sigma: scalar, standard deviation of Gaussian similarity in intensity domain 
+
+        Returns:
+            Distances: (N*M, N*M) scipy sparse array, D[i, j] probability of choosing pixel j given pixel i
+            Influence: (N*M, N*M), scipy sparse array, Influence[i, j] is the influence of pixel j on pixel i
+            
+    """
+
+    print("Computing PDF and Influence Matrix...")
+
+    n = image.shape[0]
+    m = image.shape[1]
+    channels = image.shape[2]
+
+
+    x = np.arange(0, m)
+    y = np.arange(0, n)
+    xv, yv = np.meshgrid(x, y)
+
+    p_xv = np.pad(xv, r, constant_values=-1)
+    p_yv = np.pad(yv, r, constant_values=-1)
+
+    # create image tensors with padding
+    index = torch.FloatTensor(xv + m * yv).view(1, n, m)
+
+    xv = torch.FloatTensor(p_xv).view(1, n + 2 * r, m + 2 * r)
+    yv = torch.FloatTensor(p_yv).view(1, n + 2 * r, m + 2 * r)
+    size = 2 * r + 1
+    numK = size ** 2
+    kernel = torch.zeros(numK, 1, size, size, dtype=torch.float32)
+    for i in range(size):
+        for j in range(size):
+            kernel[i * size + j, 0, i, j] = 1
+
+    p_index = torch.FloatTensor(p_xv + m * p_yv).view(1, n + 2 * r, m + 2 * r)
+
+    W = None
+
+    for rgbEl in range(channels):
+
+        p_image = torch.FloatTensor(np.pad(image[:, :, rgbEl], r, constant_values=-1)).unsqueeze(0)
+        
+        with torch.no_grad():
+            out_x = torch.nn.functional.conv2d(xv, kernel)
+            out_y = torch.nn.functional.conv2d(yv, kernel)
+
+            out_image = torch.nn.functional.conv2d(p_image, kernel).numpy()
+            col = torch.nn.functional.conv2d(p_index, kernel).view(-1).numpy().astype(np.int32)
+            row = index.squeeze(0).tile(numK, 1, 1).view(-1).numpy().astype(np.int32)
+            intensity_data = (np.square(out_image - np.expand_dims(image[:, :, rgbEl], 0))).reshape(-1)
+
+            if rgbEl == 0:
+                Distances = (torch.sqrt(torch.square(out_x - xv[:, r:-r,r:-r]) + torch.square(out_y - yv[:, r:-r,r:-r]))).view(-1).numpy()
+        
+        data = np.exp(-intensity_data / np.square(sigma))
+
+        if W is None:
+            Influence = bsr_matrix((data[col >= 0], (row[col >= 0], col[col >= 0])), shape=(n * m, n * m), dtype=np.float32)
+        else:
+            Influence += bsr_matrix((data[col >= 0], (row[col >= 0], col[col >= 0])), shape=(n * m, n * m), dtype=np.float32)
+
+    return Influence, Distances
+
+
+
+
+
 def get_Graph_Laplacian(W, type='unNormalized'):
     """ Compute Graph Laplacian matrix L from similarity matrix W
 

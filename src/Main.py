@@ -3,6 +3,7 @@ import Spectral_Clustering
 import numpy as np
 import matplotlib.pyplot as plt
 import utility_tools.Preprocessor as Preprocessor
+import SEC
 
 def main_clustering():
 
@@ -45,8 +46,8 @@ def main_clustering():
 
 def main_segmentation():
 
-    # img = skimage.io.imread('../data/spectral_data/plane.jpg').astype(np.float32)
-    img = skimage.io.imread('../data/spectral_data/hair.png').astype(np.float32)
+    img = skimage.io.imread('../data/spectral_data/plane.jpg').astype(np.float32)
+    # img = skimage.io.imread('../data/spectral_data/hair.png').astype(np.float32)
     # img = skimage.io.imread('../data/spectral_data/test_blob_uniform.png').astype(np.float32)
     # img = skimage.io.imread('../data/spectral_data/onion.png').astype(np.float32)
     # img = skimage.io.imread('../data/spectral_data/peppers.png').astype(np.float32)
@@ -54,7 +55,7 @@ def main_segmentation():
 
     print(img.shape)
 
-    img = img[500:900, 500:900, :]
+    # img = img[500:900, 500:900, :]
 
     # plt.imshow(img)
     # plt.show()
@@ -73,8 +74,8 @@ def main_segmentation():
     # plt.show()
 
     # labels = Spectral_Clustering.spectral_Segmentation(img, k=2, sigma_i=0.02, sigma_x=1.5, r=2, graphType='symmetric')
-    # labels = Spectral_Clustering.spectral_Segmentation(imgDownScaled, k=4, sigma_i=0.04, sigma_x=2, r=2, graphType='symmetric') # good for plane
-    labels = Spectral_Clustering.spectral_Segmentation(imgDownScaled, k=2, sigma_i=0.0005, sigma_x=30, r=40, graphType='symmetric') # hair
+    labels = Spectral_Clustering.spectral_Segmentation(imgDownScaled, k=2, sigma_i=0.03, sigma_x=6, r=9, graphType='symmetric') # good for plane
+    # labels = Spectral_Clustering.spectral_Segmentation(imgDownScaled, k=2, sigma_i=0.0005, sigma_x=30, r=40, graphType='symmetric') # hair
 
 
     # upscale - how to do that?
@@ -94,7 +95,7 @@ def main_segmentation():
     
     # segmented image
     imgSegmented = img.copy()
-    pos = np.where(labels != 0)
+    pos = np.where(labels == 0)
     
     col1 = pos[0][:] < img.shape[0]
     col2 = pos[1][:] < img.shape[1]
@@ -112,12 +113,48 @@ def main_segmentation():
 
 
 
+def SEC_Segmentation():
 
+    img = skimage.io.imread('../data/spectral_data/plane.jpg').astype(np.float32)
+    img = img / 255
+
+    k = 1/8
+
+    imgDownScaled = Preprocessor.rescale(img, k)
+    labels = Spectral_Clustering.spectral_Segmentation(imgDownScaled, k=2, sigma_i=0.03, sigma_x=6, r=9, graphType='symmetric') # good for plane
+
+    # rescale to the original size
+    labels = Preprocessor.rescale(labels, 1/k)
+    
+    labelsCorrectSize = np.zeros((img.shape[0], img.shape[1]))
+    labelsCorrectSize[:labels.shape[0], :labels.shape[1]] = labels
+    
+    
+    print("Downscaled image segmented!")
+
+    SEC.Stochastic_Ensemble_Consensus(img.copy(), labels)
+    
+
+
+    # plot
+    subplot, ax = plt.subplots(1, 3)
+
+    # original image
+    ax[0].imshow(img, cmap='gray')   
+    # segmentation 
+    ax[1].imshow(labels, cmap='gray')
+
+    imgSegmented = img.copy()
+    imgSegmented[labelsCorrectSize == 0] = 0
+
+    ax[2].imshow(imgSegmented, cmap='gray') 
+    plt.show()
 
 
 
 
 if __name__ == '__main__':
 
-    main_segmentation()
-    main_clustering()
+    SEC_Segmentation()
+    # main_segmentation()
+    # main_clustering()
