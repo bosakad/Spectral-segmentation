@@ -104,55 +104,6 @@ def spectral_Segmentation(image, k, sigma_i, sigma_x, r,  graphType='unNormalize
 
 
 
-if __name__ == "__main__":
-
-    # img = skimage.io.imread('../data/spectral_data/bag.png').astype(np.float32)
-    img = skimage.io.imread('../data/spectral_data/plane.jpg').astype(np.float32)
-    img = img / 255
-
-    if len(img.shape) == 3:
-        rgb = True
-        img = img[0:300, 0:300, :]
-
-    # plt.imshow(img)
-    # plt.show()
-
-    # img = skimage.io.imread('../data/spectral_data/').astype(np.float32)
-    
-    # img = img[125:145, :20]
-    # img = img / 255
-    labels = spectral_Segmentation(img, k=2, sigma_i=0.03, sigma_x=2, r=3, graphType='symmetric')
-    # labels = spectral_Segmentation(img, k=2, sigma_i=1, sigma_x=3, r=5, graphType='unNormalized')
-
-
-    # plot
-    subplot, ax = plt.subplots(1, 3)
-
-    ax[0].imshow(img, cmap='gray')    
-    ax[1].imshow(labels, cmap='gray')
-    
-    imgSegmented = img.copy()
-    imgSegmented[labels == 0] = 0
-    ax[2].imshow(imgSegmented, cmap='gray') 
-    plt.show()
-
-    labels = post_processing(img, labels, r=4, k=2, sigma=0.03, num_iteration=5)
-    subplot, ax = plt.subplots(1, 3)
-
-    ax[0].imshow(img, cmap='gray')    
-    ax[1].imshow(labels, cmap='gray')
-    
-    imgSegmented = img.copy()
-    imgSegmented[labels == 0] = 0
-    ax[2].imshow(imgSegmented, cmap='gray') 
-    plt.show()
-    
-    # plt.imshow(labels.reshape(img.shape), cmap='gray')
-    # plt.show()
-
-
-
-
 
 
 

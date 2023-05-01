@@ -135,7 +135,6 @@ def SEC_Segmentation():
     # downscale
     imgDownScaled = Preprocessor.rescaleSkimage(img, k)
 
-
     print("Segmenting Downscaled Image!")
 
     # segment the downscaled image
@@ -147,7 +146,7 @@ def SEC_Segmentation():
     print("Postprocessing using Stochastic Ensemble Consensus!")
 
     # post processing - improve labels
-    new_labels = PostProcessing.Stochastic_Ensemble_Consensus(img, labels.copy(), r=5, k=2, sigma=1, num_iteration=4, expectation=True)
+    new_labels = PostProcessing.Stochastic_Ensemble_Consensus(img, labels.copy(), r=12, k=2, sigma=0.03, num_iteration=10, expectation=True)
 
 
     ################ plot ################### 
