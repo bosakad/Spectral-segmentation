@@ -2,46 +2,20 @@ import skimage
 import Spectral_Clustering
 import numpy as np
 import matplotlib.pyplot as plt
-import utility_tools.Preprocessor as Preprocessor
 import PostProcessor
+from utility_tools import Data_loader, Preprocessor
 
 def main_clustering():
 
-    pass
-
     # cluster 1
-    # points = Data_loader.load_data('../data/spectral_data/points_data.mat', clusterInd=1)
-    # labels = spectral_Clustering(points, k=3, sigma=0.25, graphType='unNormalized')
+    points = Data_loader.load_data('../data/spectral_data/points_data.mat', clusterInd=1)
+    labels = Spectral_Clustering.spectral_Clustering(points, k=3, sigma=0.25, graphType='unNormalized')
 
 
     # labels = spectral_Clustering(points, k=3, sigma=0.1, graphType='randomWalk')
 
 
-    # cluster 0
-    # points = Data_loader.load_data('../data/spectral_data/points_data.mat', clusterInd=0)
-    # # labels = spectral_Clustering(points, k=3, sigma=0.25, graphType='unNormalized')
-    # labels = spectral_Clustering(points, k=3, sigma=0.35, graphType='symmetric')
-    # labels = spectral_Clustering(points, k=3, sigma=0.25, graphType='randomWalk')
-
-    # points = Data_loader.load_data('../data/spectral_data/points_data.mat', clusterInd=2)
-    # # labels = spectral_Clustering(points, k=2, sigma=0.4, graphType='unNormalized')
-    # labels = spectral_Clustering(points, k=2, sigma=0.03, graphType='symmetric')
-    # labels = spectral_Clustering(points, k=2, sigma=1, graphType='randomWalk')
-
-
-    # points = Data_loader.load_data('../data/spectral_data/points_data.mat', clusterInd=3)    
-    # labels = spectral_Clustering(points, k=3, sigma=1, graphType='unNormalized')
-    # labels = spectral_Clustering(points, k=3, sigma=0.35, graphType='symmetric')
-    # labels = spectral_Clustering(points, k=3, sigma=0.59, graphType='randomWalk')
-
-
-    # points = Data_loader.load_data('../data/spectral_data/points_data.mat', clusterInd=4)    
-    # labels = spectral_Clustering(points, k=2, sigma=0.2, graphType='unNormalized')
-    # labels = spectral_Clustering(points, k=2, sigma=0.05, graphType='symmetric')
-    # labels = spectral_Clustering(points, k=2, sigma=0.12, graphType='randomWalk')
-
-
-    # Data_loader.plotData(points, labels=labels)
+    Data_loader.plotData(points, labels=labels)
 
 
 def main_segmentation():
@@ -177,6 +151,6 @@ def SEC_Segmentation():
 
 if __name__ == '__main__':
 
-    SEC_Segmentation()
+    # SEC_Segmentation()
     # main_segmentation()
-    # main_clustering()
+    main_clustering()

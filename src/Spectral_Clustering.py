@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 from utility_tools import Data_loader, Graph_Laplacian, Eigen_Solver
 
-def spectral_Clustering(data, k, sigma, graphType='unNormalized'):
+def spectral_Clustering(data, k, sigma=-1, graphType='unNormalized'):
     """ Spectral Clustering algorithm for data clustering
     
     Args:
@@ -22,21 +22,15 @@ def spectral_Clustering(data, k, sigma, graphType='unNormalized'):
 
     # create graph of similarites
     W = Graph_Laplacian.get_Fully_Connected_Graph(data, sigma=sigma)
-    # W =  Graph_Laplacian.get_fully_connected_graph_image(data, sigma_i=1, sigma_x=1, r=5)
-    # W = Graph_Laplacian.get_Fully_Connected_Graph(data)   
+
+    # create graph Laplacian
     L = Graph_Laplacian.get_Graph_Laplacian(W, type=graphType)
 
     # compute k smallest eigen vectors
-    eigen_values, eigen_vectors = Eigen_Solver.compute_Eigen_Vectors(L, k=k)
-
-
-    print(eigen_vectors[:, 1][:10])
-
+    _, eigen_vectors = Eigen_Solver.compute_Eigen_Vectors(L, k=k)
 
     # normalize over rows
-    if graphType == "symmetric":
-        eigen_vectors = sklearn.preprocessing.normalize(eigen_vectors, norm='l2', axis=1, copy=False)
-
+    eigen_vectors = sklearn.preprocessing.normalize(eigen_vectors, norm='l2', axis=1, copy=False)
 
     # cluster the data
     kmeans = sklearn.cluster.KMeans(n_clusters=k, n_init=10).fit(eigen_vectors)

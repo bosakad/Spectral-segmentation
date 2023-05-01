@@ -15,7 +15,7 @@ def load_data(fileName, clusterInd=0):
 
 
 
-def plotData(points, labels=np.array([])):
+def plotData(points, labels=np.array([]), title=None):
     """ Plot data
     """
 
@@ -32,6 +32,9 @@ def plotData(points, labels=np.array([])):
             clusterInd = np.where(labels == i)
             plt.scatter(points[clusterInd, 0], points[clusterInd, 1])
 
+        if title is not None:
+            plt.title(title) 
+    
         plt.show()
 
 
