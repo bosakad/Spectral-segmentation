@@ -175,7 +175,7 @@ def get_connected_graph_image_3D(image, sigma_i, sigma_x, r):
     
     """
 
-    print(image.shape)
+    print("segmenting now")
     
     n = image.shape[0]
     m = image.shape[1]

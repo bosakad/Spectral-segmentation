@@ -1,5 +1,8 @@
-import utility_tools.Graph_Laplacian as Graph_Laplacian
-
+import numpy as np
+import skimage.io
+import matplotlib.pyplot as plt
+import Spectral_Clustering
+from utility_tools import Data_loader, Graph_Laplacian, Eigen_Solver
 
 def Stochastic_Ensemble_Consensus(original_Image, labels):
     """
@@ -45,3 +48,24 @@ def Stochastic_Ensemble_Consensus(original_Image, labels):
 
 
 
+def experiments():
+    img = skimage.io.imread('../data/spectral_data/plane.jpg').astype(np.float32)
+    img = img / 255
+
+    if len(img.shape) == 3:
+        rgb = True
+        img = img[0:300, 0:300, :]
+
+
+    labels = Spectral_Clustering.spectral_Segmentation(img, k=2, sigma_i=0.03, sigma_x=2, r=3, graphType='symmetric')
+
+    subplot, ax = plt.subplots(1, 3)
+
+    ax[0].imshow(img, cmap='gray')    
+    ax[1].imshow(labels, cmap='gray')
+
+    imgSegmented = img.copy()
+    imgSegmented[labels == 0] = 0
+    ax[2].imshow(imgSegmented, cmap='gray') 
+
+    plt.show()

@@ -132,8 +132,8 @@ def SEC_Segmentation():
     
     print("Downscaled image segmented!")
 
-    SEC.Stochastic_Ensemble_Consensus(img.copy(), labels)
-    
+    # SEC.Stochastic_Ensemble_Consensus(img.copy(), labels)
+    new_labels = Spectral_Clustering.post_processing(img, labelsCorrectSize, r=5, k=2, sigma=1, num_iteration=1, expectation=False)
 
 
     # plot
@@ -142,18 +142,25 @@ def SEC_Segmentation():
     # original image
     ax[0].imshow(img, cmap='gray')   
     # segmentation 
-    ax[1].imshow(labels, cmap='gray')
 
     imgSegmented = img.copy()
     imgSegmented[labelsCorrectSize == 0] = 0
 
+    ax[1].imshow(imgSegmented, cmap='gray') 
+    
+    imgSegmented = img.copy()
+    imgSegmented[new_labels == 0] = 0
+
     ax[2].imshow(imgSegmented, cmap='gray') 
+    
     plt.show()
 
 
 
 
 if __name__ == '__main__':
+
+    # SEC.experiments()
 
     SEC_Segmentation()
     # main_segmentation()

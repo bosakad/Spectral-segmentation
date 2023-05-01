@@ -110,6 +110,10 @@ def post_processing(image, labels, r, k, sigma, num_iteration, expectation):
     probability, kernel = Graph_Laplacian.get_distance_mat(image, out_label, r)
     influence_mat  = Graph_Laplacian.get_influence_mat(image, kernel, sigma, r)
     prod = None
+
+    print(probability.shape)
+    print(influence_mat.shape)
+
     if expectation:
         prod = influence_mat * probability
 
