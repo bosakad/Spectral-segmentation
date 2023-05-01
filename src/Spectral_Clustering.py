@@ -101,12 +101,12 @@ def spectral_Segmentation(image, k, sigma_i, sigma_x, r,  graphType='unNormalize
     return labels.reshape((image.shape[0], image.shape[1]))
 
 
-def post_processing(image, r, labels, k, sigma, num_iteration):
+def post_processing(image, labels, r, k, sigma, num_iteration):
     # check type of the image
     if len(image.shape) == 3:  rgb = True
     else:                      rgb = False
 
-    out_label = Graph_Laplacian.get_label_mat(labels)
+    out_label = Graph_Laplacian.get_label_mat(labels, None, r)
     probability, kernel = Graph_Laplacian.get_distance_mat(image, out_label, r)
     influence_mat  = Graph_Laplacian.get_influence_mat(image, kernel, sigma, r)
     prod = influence_mat * probability
@@ -119,7 +119,7 @@ def post_processing(image, r, labels, k, sigma, num_iteration):
         
         L = np.stack(L, axis=0)
         labels = np.argmax(L, axis=0)
-        out_label = Graph_Laplacian.get_label_mat(labels)
+        out_label = Graph_Laplacian.get_label_mat(labels, kernel, r)
     
     return labels
 
@@ -165,7 +165,17 @@ if __name__ == "__main__":
     imgSegmented[labels == 0] = 0
     ax[2].imshow(imgSegmented, cmap='gray') 
     plt.show()
+
+    labels = post_processing(img, labels, r=4, k=2, sigma=0.03, num_iteration=5)
+    subplot, ax = plt.subplots(1, 3)
+
+    ax[0].imshow(img, cmap='gray')    
+    ax[1].imshow(labels, cmap='gray')
     
+    imgSegmented = img.copy()
+    imgSegmented[labels == 0] = 0
+    ax[2].imshow(imgSegmented, cmap='gray') 
+    plt.show()
     
     # plt.imshow(labels.reshape(img.shape), cmap='gray')
     # plt.show()

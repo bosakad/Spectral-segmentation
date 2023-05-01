@@ -247,7 +247,8 @@ def get_influence_mat(image, kernel, sigma, r):
         with torch.no_grad():
             out_image = torch.nn.functional.conv2d(p_image, kernel).numpy()
         
-        intensity_data = (np.square(out_image - np.expand_dims(image[:, :, rgbEl], 0))).reshape(-1)
+        intensity_data = (np.square(out_image - np.expand_dims(image[:, :, rgbEl], 0)))
+        # intensity_data = np.exp(-intensity_data / np.square(sigma))
         
         if sum_data is None:
             sum_data = intensity_data
@@ -255,11 +256,22 @@ def get_influence_mat(image, kernel, sigma, r):
             sum_data += intensity_data
     
     data = np.exp(-sum_data / np.square(sigma))
-
+    # data = sum_data
+    
     return data
 
-def get_label_mat(labels):
+
+def get_label_mat(labels, kernel, r):
     p_label = torch.FloatTensor(np.pad(labels, r, constant_values=-1)).unsqueeze(0)
+    
+    if kernel is None:
+        size = 2 * r + 1
+        numK = size ** 2
+        kernel = torch.zeros(numK, 1, size, size, dtype=torch.float32)
+        for i in range(size):
+            for j in range(size):
+                kernel[i * size + j, 0, i, j] = 1
+
     with torch.no_grad():
         out_label = torch.nn.functional.conv2d(p_label, kernel).numpy()
     
@@ -291,7 +303,7 @@ def get_distance_mat(image, out_label, r):
     np.divide(1, distances, out=probability, where=np.logical_and(out_label >= 0, distances > 0))
     probability = probability / np.sum(probability, axis=0, keepdims=True)
 
-    return probability, out_label, kernel
+    return probability, kernel
 
 
 
