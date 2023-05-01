@@ -4,47 +4,6 @@ import matplotlib.pyplot as plt
 import Spectral_Clustering
 from utility_tools import Data_loader, Graph_Laplacian, Eigen_Solver
 
-def Stochastic_Ensemble_Consensus(original_Image, labels):
-    """
-    Stochastic_Ensemble_Consensus to obtain the final segmentation
-
-    Args:
-        original_Image: N*M image
-        labels: N*M labels
-    
-    Returns:
-        labels: N*M labels after SEC
-
-    """
-
-    # specify parameters
-    windowSize = 5
-    sigma = 0.05
-    numberOfIterations = 1
-
-    # get the space probability density function and the influence matrix
-    influenceM, DistanceMatrix = Graph_Laplacian.get_DistanceM_InfluenceMatrix(original_Image, windowSize, sigma)
-
-
-    indices = DistanceMatrix.nonzero()[0]
-    probM = 1 / DistanceMatrix[indices].reshape((-1, windowSize**2))
-
-    print(probM.shape)
-
-    # make the segmentation better
-    for i in range(numberOfIterations):
-
-        # draw from probM
-
-        pass
-        
-
-
-        # print(indices[0][0])
-        # print(probM[0])
-        # print(indices[1].shape)
-
-
 
 def Stochastic_Ensemble_Consensus(image, labels, r, k, sigma, num_iteration, expectation):
     """
@@ -70,12 +29,6 @@ def Stochastic_Ensemble_Consensus(image, labels, r, k, sigma, num_iteration, exp
     influence_mat  = Graph_Laplacian.get_influence_mat(image, kernel, sigma, r)
     prod = None
 
-    # print(image.shape)
-    # print(r)
-    # print(influence_mat.shape)
-    # print(probability.shape)
-    # exit()
-    # exit()
 
     if expectation:
         prod = influence_mat * probability

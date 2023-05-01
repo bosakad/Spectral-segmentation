@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from utility_tools import Data_loader, Graph_Laplacian, Eigen_Solver
 
 def spectral_Clustering(data, k, sigma, graphType='unNormalized'):
-    """ Spectral Clustering algorithm
+    """ Spectral Clustering algorithm for data clustering
     
     Args:
         data: (N, D) numpy array, N is the number of data points, D is the dimension of data points
@@ -46,7 +46,7 @@ def spectral_Clustering(data, k, sigma, graphType='unNormalized'):
 
 
 def spectral_Segmentation(image, k, sigma_i, sigma_x, r,  graphType='unNormalized'):
-    """ Spectral Clustering algorithm
+    """ Spectral Clustering algorithm image segmentation
 
     Args:   
         image:  
@@ -79,19 +79,13 @@ def spectral_Segmentation(image, k, sigma_i, sigma_x, r,  graphType='unNormalize
     
     L = sklearn.preprocessing.normalize(L, norm='l2', axis=1, copy=False) # normalize over rows
 
-    print(L.mean())
-
     # compute k smallest eigen vectors
     eigen_values, eigen_vectors = Eigen_Solver.compute_Eigen_Sparse_Vectors(L, k=k)
 
     # normalize over rows
-    # if graphType == "symmetric":
     eigen_vectors = sklearn.preprocessing.normalize(eigen_vectors, norm='l2', axis=1, copy=False)
 
-    print(eigen_vectors.shape)
-
     # print(eigen_vectors[:, 1][:10])
-
 
     # cluster the data
     kmeans = sklearn.cluster.KMeans(n_clusters=k, n_init=20).fit(eigen_vectors)

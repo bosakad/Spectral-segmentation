@@ -125,7 +125,6 @@ def SEC_Segmentation():
 
     """
 
-
     # load image
     img = skimage.io.imread('../data/spectral_data/plane.jpg').astype(np.float32)
     img = img / 255
@@ -136,13 +135,16 @@ def SEC_Segmentation():
     # downscale
     imgDownScaled = Preprocessor.rescaleSkimage(img, k)
 
+
+    print("Segmenting Downscaled Image!")
+
     # segment the downscaled image
     labels = Spectral_Clustering.spectral_Segmentation(imgDownScaled, k=2, sigma_i=0.03, sigma_x=6, r=9, graphType='symmetric') # good for plane
 
     # rescale to the original size
     labels = Preprocessor.rescaleCV2(labels.astype(np.float32), (img.shape[0], img.shape[1]))
 
-    print("Downscaled image segmented!")
+    print("Postprocessing using Stochastic Ensemble Consensus!")
 
     # post processing - improve labels
     new_labels = PostProcessing.Stochastic_Ensemble_Consensus(img, labels.copy(), r=5, k=2, sigma=1, num_iteration=4, expectation=True)

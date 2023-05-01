@@ -10,6 +10,7 @@ import torch
 
 def get_Fully_Connected_Graph(points, sigma=-1):
     """ Compute W matrix of a fully connected graph using Gaussian similarity with parameter sigma
+        works for clustering data points
 
     Args: 
         points: (N, D) numpy array, N is the number of points, D is the dimension of each point
@@ -37,10 +38,6 @@ def get_Fully_Connected_Graph(points, sigma=-1):
         # sigma = distances.mean() * 2
         sigma = scipy.ndimage.median( distances.flatten() ) * 2
 
-
-
-    print(sigma)
-
     # compute similarity
     W = np.exp( - W / (2*np.square(sigma)) )        
 
@@ -48,7 +45,19 @@ def get_Fully_Connected_Graph(points, sigma=-1):
 
 
 def get_connected_graph_image_brute_force(image, sigma_i, sigma_x, r):
-    
+    """brute force algoritm for connected graph for 2D image
+        
+    Args:
+        image: (N, M) numpy array, N is the number of rows, M is the number of columns
+        sigma_i: scalar, standard deviation of Gaussian similarity in intensity domain
+        sigma_x: scalar, standard deviation of Gaussian similarity in spatial domain
+        r: scalar, radius of spatial domain
+
+    Returns:
+        W: (N*M, N*M) numpy array, W[i, j] is the similarity between point i and point j
+
+    """
+
     n = image.shape[0]
     m = image.shape[1]
     
@@ -74,7 +83,19 @@ def get_connected_graph_image_brute_force(image, sigma_i, sigma_x, r):
     return W
 
 def get_connected_graph_image_brute_force_3D(image, sigma_i, sigma_x, r):
-    
+    """brute force algoritm for connected graph 3D image
+        
+    Args:
+        image: (N, M) numpy array, N is the number of rows, M is the number of columns
+        sigma_i: scalar, standard deviation of Gaussian similarity in intensity domain
+        sigma_x: scalar, standard deviation of Gaussian similarity in spatial domain
+        r: scalar, radius of spatial domain
+
+    Returns:
+        W: (N*M, N*M) numpy array, W[i, j] is the similarity between point i and point j
+
+    """
+
     # check type of the image
     if len(image.shape) == 3:  rgb = True
     else:                      rgb = False
@@ -89,8 +110,6 @@ def get_connected_graph_image_brute_force_3D(image, sigma_i, sigma_x, r):
     xv, yv = np.meshgrid(x, y)
     points = np.stack([yv, xv], axis=-1).reshape(-1, 2)
     X_distance = np.sum( np.square(points[:, None, :] - points[None, :, :]), axis=-1 ) 
-    
-    print(X_distance.shape)
 
     # compute intensity distances mesh grid
     intensity = image[points[:,0], points[:,1]]
@@ -98,8 +117,6 @@ def get_connected_graph_image_brute_force_3D(image, sigma_i, sigma_x, r):
         I_distance = np.sum( np.square(intensity.reshape(-1, 1, 3) -  intensity.reshape(1, -1, 3)) , axis=-1)
     else:
         I_distance = np.square(intensity.reshape(-1, 1) -  intensity.reshape(1, -1))
-
-    print(I_distance.shape)
 
     W = np.zeros_like(X_distance)
     W = np.exp(-I_distance / np.square(sigma_i)) * np.exp(-X_distance / np.square(sigma_x)) * (X_distance < np.square(r))
@@ -120,8 +137,6 @@ def get_connected_graph_image(image, sigma_i, sigma_x, r):
         W: (N*M, N*M) numpy array, W[i, j] is the similarity between point i and point j
     
     """
-
-    print(image.shape)
 
     n = image.shape[0]
     m = image.shape[1]
@@ -174,8 +189,6 @@ def get_connected_graph_image_3D(image, sigma_i, sigma_x, r):
         W: (N*M, N*M) numpy array, W[i, j] is the similarity between point i and point j
     
     """
-
-    print("segmenting now")
     
     n = image.shape[0]
     m = image.shape[1]
@@ -188,10 +201,6 @@ def get_connected_graph_image_3D(image, sigma_i, sigma_x, r):
 
     p_xv = np.pad(xv, r, constant_values=-1)
     p_yv = np.pad(yv, r, constant_values=-1)
-
-    # print(xv[:20, :20])
-    # print(p_xv[:20, :20])
-    # exit()    
 
     # create image tensors with padding
     index = torch.FloatTensor(xv + m * yv).view(1, n, m)
@@ -208,10 +217,6 @@ def get_connected_graph_image_3D(image, sigma_i, sigma_x, r):
     p_index = torch.FloatTensor(p_xv + m * p_yv).view(1, n + 2 * r, m + 2 * r)
 
     W = None
-
-    # for rgbEl in range(channels):
-
-    #     p_image = torch.FloatTensor(np.pad(image[:, :, rgbEl], r, constant_values=-1)).unsqueeze(0)
         
     with torch.no_grad():
         out_x = torch.nn.functional.conv2d(xv, kernel)
@@ -236,6 +241,18 @@ def get_connected_graph_image_3D(image, sigma_i, sigma_x, r):
 
 
 def get_influence_mat(image, kernel, sigma, r):
+    """ Genereate influence matrix for each pixel in the image
+
+    Args:
+        image: input image
+        kernel: output label
+        r: radius of the kernel
+
+    Returns:
+        (N, M, (r**2 + 1)**2 )label matrix
+
+    """
+
     n = image.shape[0]
     m = image.shape[1]
     channels = image.shape[2]
@@ -262,6 +279,18 @@ def get_influence_mat(image, kernel, sigma, r):
 
 
 def get_label_mat(labels, kernel, r):
+    """ Genereate label matrix for each pixel in the image
+
+    Args:
+        image: input image
+        kernel: output label
+        r: radius of the kernel
+
+    Returns:
+        (N, M, (r**2 + 1)**2 )label matrix
+
+    """
+
     p_label = torch.FloatTensor(np.pad(labels, r, constant_values=-1)).unsqueeze(0)
     
     if kernel is None:
@@ -278,6 +307,18 @@ def get_label_mat(labels, kernel, r):
     return out_label
 
 def get_distance_mat(image, out_label, r):
+    """ Genereate distance matrix for each pixel in the image
+
+    Args:
+        image: input image
+        out_label: output label
+        r: radius of the kernel
+
+    Returns:
+        distance matrix
+
+    """
+
     n = image.shape[0]
     m = image.shape[1]
     x = np.arange(0, m)
@@ -304,80 +345,6 @@ def get_distance_mat(image, out_label, r):
     probability = probability / np.sum(probability, axis=0, keepdims=True)
 
     return probability, kernel
-
-
-
-def get_DistanceM_InfluenceMatrix(image, r, sigma):
-
-    """
-        Computes pairwise distances for each pixel in the image and then computes the spatially-adaptive PDF and influence matrix
-
-        Args:
-            image: (N, M) numpy array, N is the number of rows, M is the number of columns
-            window: scalar, window size for computing the spatially-adaptive PDF
-            sigma: scalar, standard deviation of Gaussian similarity in intensity domain 
-
-        Returns:
-            Distances: (N*M, N*M) scipy sparse array, D[i, j] probability of choosing pixel j given pixel i
-            Influence: (N*M, N*M), scipy sparse array, Influence[i, j] is the influence of pixel j on pixel i
-            
-    """
-
-    print("Computing PDF and Influence Matrix...")
-
-    n = image.shape[0]
-    m = image.shape[1]
-    channels = image.shape[2]
-
-    x = np.arange(0, m)
-    y = np.arange(0, n)
-    xv, yv = np.meshgrid(x, y)
-
-    p_xv = np.pad(xv, r, constant_values=-1)
-    p_yv = np.pad(yv, r, constant_values=-1)
-
-    # create image tensors with padding
-    index = torch.FloatTensor(xv + m * yv).view(1, n, m)
-
-    xv = torch.FloatTensor(p_xv).view(1, n + 2 * r, m + 2 * r)
-    yv = torch.FloatTensor(p_yv).view(1, n + 2 * r, m + 2 * r)
-    size = 2 * r + 1
-    numK = size ** 2
-    kernel = torch.zeros(numK, 1, size, size, dtype=torch.float32)
-    for i in range(size):
-        for j in range(size):
-            kernel[i * size + j, 0, i, j] = 1
-
-    p_index = torch.FloatTensor(p_xv + m * p_yv).view(1, n + 2 * r, m + 2 * r)
-
-    W = None
-
-    for rgbEl in range(channels):
-
-        p_image = torch.FloatTensor(np.pad(image[:, :, rgbEl], r, constant_values=-1)).unsqueeze(0)
-        
-        with torch.no_grad():
-            out_x = torch.nn.functional.conv2d(xv, kernel)
-            out_y = torch.nn.functional.conv2d(yv, kernel)
-
-            out_image = torch.nn.functional.conv2d(p_image, kernel).numpy()
-            col = torch.nn.functional.conv2d(p_index, kernel).view(-1).numpy().astype(np.int32)
-            row = index.squeeze(0).tile(numK, 1, 1).view(-1).numpy().astype(np.int32)
-            intensity_data = (np.square(out_image - np.expand_dims(image[:, :, rgbEl], 0))).reshape(-1)
-
-            if rgbEl == 0:
-                Distances = (torch.sqrt(torch.square(out_x - xv[:, r:-r,r:-r]) + torch.square(out_y - yv[:, r:-r,r:-r]))).view(-1).numpy()
-        
-        data = np.exp(-intensity_data / np.square(sigma))
-
-        if W is None:
-            Influence = bsr_matrix((data[col >= 0], (row[col >= 0], col[col >= 0])), shape=(n * m, n * m), dtype=np.float32)
-        else:
-            Influence += bsr_matrix((data[col >= 0], (row[col >= 0], col[col >= 0])), shape=(n * m, n * m), dtype=np.float32)
-
-    return Influence, Distances
-
-
 
 
 
@@ -428,7 +395,6 @@ def get_Sparse_Graph_Laplacian(W : bsr_matrix, type='unNormalized'):
 
     assert(W.shape[0] == W.shape[1])
     diag_elements = np.asarray(scipy.sum(W, axis=1)).reshape(-1)
-    print(diag_elements.shape)
     L = None
 
     # compute Graph Laplacian matrix
@@ -450,22 +416,5 @@ def get_Sparse_Graph_Laplacian(W : bsr_matrix, type='unNormalized'):
         L = I - D_inv @ W
 
     return L
-
-
-if __name__ == '__main__':
-
-    # points = load_data('../data/spectral_data/points_data.mat', clusterInd=1)
-
-    img = skimage.io.imread('../data/spectral_data/bag.png').astype(np.float32)
-    get_fully_connected_graph_image(img, sigma_i=1, sigma_x=1, r=1)
-    # W = get_Fully_Connected_Graph(points, sigma=1)
-
-    # L = get_Graph_Laplacian(W, type='unNormalized')
-    # L = get_Graph_Laplacian(W, type='symmetric')
-    # L = get_Graph_Laplacian(W, type='randomWalk')
-
-
-    # import Eigen_Solver
-    # Eigen_Solver.compute_Eigen_Vectors(L, k=2)
 
 

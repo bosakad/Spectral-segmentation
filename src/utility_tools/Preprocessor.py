@@ -82,8 +82,7 @@ def rescaleCV2(image, desiredShape):
     """
 
     resized = cv2.resize(image, (desiredShape[1], desiredShape[0]), interpolation=cv2.INTER_NEAREST)
-
-    # resized = np.round(resized)
+    resized = np.round(resized)
 
     return resized
 
