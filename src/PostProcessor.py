@@ -3,6 +3,7 @@ import skimage.io
 import matplotlib.pyplot as plt
 import Spectral_Clustering
 from utility_tools import Data_loader, Graph_Laplacian, Eigen_Solver
+import sklearn.preprocessing
 
 
 def Stochastic_Ensemble_Consensus(image, labels, r, k, sigma, num_iteration, expectation=True):
