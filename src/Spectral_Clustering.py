@@ -125,7 +125,11 @@ def post_processing(image, labels, r, k, sigma, num_iteration, expectation):
             L.append(np.sum(prod, axis=0, where=class_index))
         
         L = np.stack(L, axis=0)
-        labels = np.argmax(L, axis=0)
+        if expectation:
+            labels = np.argmax(L, axis=0)
+        else:
+            labels = np.argmax(np.random.random(L.shape) * np.equal(L,  L.max(axis=0, keepdims=True)), axis=0)
+        
         out_label = Graph_Laplacian.get_label_mat(labels, kernel, r)
     
     return labels
