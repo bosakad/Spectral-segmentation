@@ -120,20 +120,19 @@ def SEC_Segmentation():
 
     k = 1/8
 
-    imgDownScaled = Preprocessor.rescale(img, k)
+    imgDownScaled = Preprocessor.rescaleSkimage(img, k)
     labels = Spectral_Clustering.spectral_Segmentation(imgDownScaled, k=2, sigma_i=0.03, sigma_x=6, r=9, graphType='symmetric') # good for plane
 
+    print(np.sum(labels))
+
     # rescale to the original size
-    labels = Preprocessor.rescale(labels, 1/k)
-    
-    labelsCorrectSize = np.zeros((img.shape[0], img.shape[1]))
-    labelsCorrectSize[:labels.shape[0], :labels.shape[1]] = labels
-    
-    
+    # labels = Preprocessor.rescaleSkimage(labels, 1/k)
+    labels = Preprocessor.rescaleCV2(labels.astype(np.float32), (img.shape[0], img.shape[1]))
+
     print("Downscaled image segmented!")
 
     # SEC.Stochastic_Ensemble_Consensus(img.copy(), labels)
-    new_labels = Spectral_Clustering.post_processing(img, labelsCorrectSize, r=5, k=2, sigma=1, num_iteration=1, expectation=True)
+    new_labels = Spectral_Clustering.post_processing(img, labels.copy(), r=5, k=2, sigma=1, num_iteration=100, expectation=False)
 
 
     # plot
@@ -144,14 +143,14 @@ def SEC_Segmentation():
     # segmentation 
 
     imgSegmented = img.copy()
-    imgSegmented[labelsCorrectSize == 0] = 0
+    imgSegmented[labels == 0] = 0
 
     ax[1].imshow(imgSegmented) 
     
-    imgSegmented = img.copy()
-    imgSegmented[new_labels == 0] = 0
+    imgSegmented2 = img.copy()
+    imgSegmented2[new_labels == 0] = 0
 
-    ax[2].imshow(imgSegmented) 
+    ax[2].imshow(imgSegmented2) 
     
     plt.show()
 

@@ -1,5 +1,6 @@
 import skimage
 import numpy as np
+import cv2
 
 def maxPoolImage_3d(image, k):
     """ Max pools image by a factor of k to make it smaller then segment
@@ -48,7 +49,7 @@ def MeanImage_3d(image, k):
     return reducedImage
 
 
-def rescale(image, k):
+def rescaleSkimage(image, k):
     """ Rescale the image by a factor of k
     
     Args:
@@ -70,6 +71,21 @@ def rescale(image, k):
 
     return image_rescaled
 
+
+def rescaleCV2(image, desiredShape):
+
+    """
+    Rescale the image to the desired shape
+
+    Returns:
+        resized: (N, M, 3) numpy array, rescaled image
+    """
+
+    resized = cv2.resize(image, (desiredShape[1], desiredShape[0]), interpolation=cv2.INTER_NEAREST)
+
+    # resized = np.round(resized)
+
+    return resized
 
 
 
