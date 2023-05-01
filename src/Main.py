@@ -46,6 +46,11 @@ def main_clustering():
 
 def main_segmentation():
 
+    """
+    Image segmenetation using spectral clustering
+
+    """
+
     img = skimage.io.imread('../data/spectral_data/plane.jpg').astype(np.float32)
     # img = skimage.io.imread('../data/spectral_data/hair.png').astype(np.float32)
     # img = skimage.io.imread('../data/spectral_data/test_blob_uniform.png').astype(np.float32)
@@ -115,6 +120,12 @@ def main_segmentation():
 
 def SEC_Segmentation():
 
+    """
+    Image segmenetation using spectral clustering with added Stochastic_Ensemble_Consensus
+
+    """
+
+
     # load image
     img = skimage.io.imread('../data/spectral_data/plane.jpg').astype(np.float32)
     img = img / 255
@@ -134,7 +145,7 @@ def SEC_Segmentation():
     print("Downscaled image segmented!")
 
     # post processing - improve labels
-    new_labels = SEC.post_processing(img, labels.copy(), r=5, k=2, sigma=1, num_iteration=4, expectation=True)
+    new_labels = SEC.Stochastic_Ensemble_Consensus(img, labels.copy(), r=5, k=2, sigma=1, num_iteration=4, expectation=True)
 
 
     ################ plot ################### 

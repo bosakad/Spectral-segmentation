@@ -46,7 +46,7 @@ def Stochastic_Ensemble_Consensus(original_Image, labels):
 
 
 
-def post_processing(image, labels, r, k, sigma, num_iteration, expectation):
+def Stochastic_Ensemble_Consensus(image, labels, r, k, sigma, num_iteration, expectation):
     """
     Post processing for spectral segmentation using Stochastic ensemble consensus
     see https://uwaterloo.ca/vision-image-processing-lab/sites/ca.vision-image-processing-lab/files/uploads/files/enabling_scalable_spectral_clustering_for_image_segmentation_1.pdf
