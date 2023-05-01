@@ -143,15 +143,18 @@ def SEC_Segmentation():
 
     # original image
     ax[0].imshow(img)   
-    # segmentation 
 
+    # before preprocessing
     imgSegmented = img.copy()
-    imgSegmented[labels == 0] = 0
+    boundry = skimage.segmentation.find_boundaries(labels, mode='thick')
+    imgSegmented[boundry, :] = [1, 0, 0]
 
     ax[1].imshow(imgSegmented) 
     
+    # after preprocessing
     imgSegmented2 = img.copy()
-    imgSegmented2[new_labels == 0] = 0
+    boundry = skimage.segmentation.find_boundaries(new_labels, mode='thick')
+    imgSegmented2[boundry, :] = [1, 0, 0]
 
     ax[2].imshow(imgSegmented2) 
     
