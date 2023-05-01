@@ -3,7 +3,7 @@ import Spectral_Clustering
 import numpy as np
 import matplotlib.pyplot as plt
 import utility_tools.Preprocessor as Preprocessor
-import SEC
+import PostProcessing
 
 def main_clustering():
 
@@ -145,7 +145,7 @@ def SEC_Segmentation():
     print("Downscaled image segmented!")
 
     # post processing - improve labels
-    new_labels = SEC.Stochastic_Ensemble_Consensus(img, labels.copy(), r=5, k=2, sigma=1, num_iteration=4, expectation=True)
+    new_labels = PostProcessing.Stochastic_Ensemble_Consensus(img, labels.copy(), r=5, k=2, sigma=1, num_iteration=4, expectation=True)
 
 
     ################ plot ################### 
