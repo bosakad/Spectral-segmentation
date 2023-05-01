@@ -99,6 +99,33 @@ def spectral_Segmentation(image, k, sigma_i, sigma_x, r,  graphType='unNormalize
 
 
     return labels.reshape((image.shape[0], image.shape[1]))
+
+
+def post_processing(image, r, labels, k, sigma, num_iteration):
+    # check type of the image
+    if len(image.shape) == 3:  rgb = True
+    else:                      rgb = False
+
+    out_label = Graph_Laplacian.get_label_mat(labels)
+    probability, kernel = Graph_Laplacian.get_distance_mat(image, out_label, r)
+    influence_mat  = Graph_Laplacian.get_influence_mat(image, kernel, sigma, r)
+    prod = influence_mat * probability
+
+    for _ in range(num_iteration):
+        L = []
+        for j in range(k):
+            class_index = (out_label == j)
+            L.append(np.sum(prod, axis=0, where=class_index))
+        
+        L = np.stack(L, axis=0)
+        labels = np.argmax(L, axis=0)
+        out_label = Graph_Laplacian.get_label_mat(labels)
+    
+    return labels
+
+
+
+
     
 
 

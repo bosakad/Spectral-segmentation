@@ -175,7 +175,8 @@ def get_connected_graph_image_3D(image, sigma_i, sigma_x, r):
     
     """
 
-
+    print(image.shape)
+    
     n = image.shape[0]
     m = image.shape[1]
     channels = image.shape[2]
@@ -208,30 +209,89 @@ def get_connected_graph_image_3D(image, sigma_i, sigma_x, r):
 
     W = None
 
-    for rgbEl in range(channels):
+    # for rgbEl in range(channels):
 
-        p_image = torch.FloatTensor(np.pad(image[:, :, rgbEl], r, constant_values=-1)).unsqueeze(0)
+    #     p_image = torch.FloatTensor(np.pad(image[:, :, rgbEl], r, constant_values=-1)).unsqueeze(0)
         
-        with torch.no_grad():
-            out_x = torch.nn.functional.conv2d(xv, kernel)
-            out_y = torch.nn.functional.conv2d(yv, kernel)
+    with torch.no_grad():
+        out_x = torch.nn.functional.conv2d(xv, kernel)
+        out_y = torch.nn.functional.conv2d(yv, kernel)
+        col = torch.nn.functional.conv2d(p_index, kernel).view(-1).numpy().astype(np.int32)
+        row = index.squeeze(0).tile(numK, 1, 1).view(-1).numpy().astype(np.int32)
+        # out_image = torch.nn.functional.conv2d(p_image, kernel).numpy()
+        # intensity_data = (np.square(out_image - np.expand_dims(image[:, :, rgbEl], 0))).reshape(-1)
+        distance_data = (torch.square(out_x - xv[:, r:-r,r:-r]) + torch.square(out_y - yv[:, r:-r,r:-r])).view(-1).numpy()
+
+        for rgbEl in range(channels):
+            p_image = torch.FloatTensor(np.pad(image[:, :, rgbEl], r, constant_values=-1)).unsqueeze(0)
             out_image = torch.nn.functional.conv2d(p_image, kernel).numpy()
-            col = torch.nn.functional.conv2d(p_index, kernel).view(-1).numpy().astype(np.int32)
-            row = index.squeeze(0).tile(numK, 1, 1).view(-1).numpy().astype(np.int32)
             intensity_data = (np.square(out_image - np.expand_dims(image[:, :, rgbEl], 0))).reshape(-1)
-            distance_data = (torch.square(out_x - xv[:, r:-r,r:-r]) + torch.square(out_y - yv[:, r:-r,r:-r])).view(-1).numpy()
-        
-        data = np.exp(-intensity_data / np.square(sigma_i)) * np.exp(-distance_data / np.square(sigma_x))
-
-        print(data.shape)
-
-        if W is None:
-            W = bsr_matrix((data[col >= 0], (row[col >= 0], col[col >= 0])), shape=(n * m, n * m), dtype=np.float32)
-        else:
-            W += bsr_matrix((data[col >= 0], (row[col >= 0], col[col >= 0])), shape=(n * m, n * m), dtype=np.float32)
+            data = np.exp(-intensity_data / np.square(sigma_i)) * np.exp(-distance_data / np.square(sigma_x))
+            if W is None:
+                W = bsr_matrix((data[col >= 0], (row[col >= 0], col[col >= 0])), shape=(n * m, n * m), dtype=np.float32)
+            else:
+                W += bsr_matrix((data[col >= 0], (row[col >= 0], col[col >= 0])), shape=(n * m, n * m), dtype=np.float32)
 
     return W
 
+
+def get_influence_mat(image, kernel, sigma, r):
+    n = image.shape[0]
+    m = image.shape[1]
+    channels = image.shape[2]
+    sum_data = None
+
+    for rgbEl in range(channels):
+        p_image = torch.FloatTensor(np.pad(image[:, :, rgbEl], r, constant_values=-1)).unsqueeze(0)
+        
+        with torch.no_grad():
+            out_image = torch.nn.functional.conv2d(p_image, kernel).numpy()
+        
+        intensity_data = (np.square(out_image - np.expand_dims(image[:, :, rgbEl], 0))).reshape(-1)
+        
+        if sum_data is None:
+            sum_data = intensity_data
+        else:
+            sum_data += intensity_data
+    
+    data = np.exp(-sum_data / np.square(sigma))
+
+    return data
+
+def get_label_mat(labels):
+    p_label = torch.FloatTensor(np.pad(labels, r, constant_values=-1)).unsqueeze(0)
+    with torch.no_grad():
+        out_label = torch.nn.functional.conv2d(p_label, kernel).numpy()
+    
+    return out_label
+
+def get_distance_mat(image, out_label, r):
+    n = image.shape[0]
+    m = image.shape[1]
+    x = np.arange(0, m)
+    y = np.arange(0, n)
+    xv, yv = np.meshgrid(x, y)
+    p_xv = np.pad(xv, r, constant_values=-1)
+    p_yv = np.pad(yv, r, constant_values=-1)
+    xv = torch.FloatTensor(p_xv).view(1, n + 2 * r, m + 2 * r)
+    yv = torch.FloatTensor(p_yv).view(1, n + 2 * r, m + 2 * r)
+    size = 2 * r + 1
+    numK = size ** 2
+    kernel = torch.zeros(numK, 1, size, size, dtype=torch.float32)
+    for i in range(size):
+        for j in range(size):
+            kernel[i * size + j, 0, i, j] = 1
+    
+    with torch.no_grad():
+        out_x = torch.nn.functional.conv2d(xv, kernel)
+        out_y = torch.nn.functional.conv2d(yv, kernel)
+    
+    distances = (torch.sqrt(torch.square(out_x - xv[:, r:-r,r:-r]) + torch.square(out_y - yv[:, r:-r,r:-r]))).numpy()
+    probability = np.zeros_like(distances)
+    np.divide(1, distances, out=probability, where=np.logical_and(out_label >= 0, distances > 0))
+    probability = probability / np.sum(probability, axis=0, keepdims=True)
+
+    return probability, out_label, kernel
 
 
 
@@ -256,7 +316,6 @@ def get_DistanceM_InfluenceMatrix(image, r, sigma):
     n = image.shape[0]
     m = image.shape[1]
     channels = image.shape[2]
-
 
     x = np.arange(0, m)
     y = np.arange(0, n)
