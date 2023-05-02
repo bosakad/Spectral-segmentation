@@ -5,17 +5,35 @@ import matplotlib.pyplot as plt
 import PostProcessor
 from utility_tools import Data_loader, Preprocessor
 
-def main_clustering():
+def clustering():
 
-    # cluster 1
-    points = Data_loader.load_data('../data/spectral_data/points_data.mat', clusterInd=1)
-    labels = Spectral_Clustering.spectral_Clustering(points, k=3, sigma=0.25, graphType='unNormalized')
+    points = Data_loader.load_data('../data/spectral_data/points_data.mat', clusterInd=4) 
 
-
-    # labels = spectral_Clustering(points, k=3, sigma=0.1, graphType='randomWalk')
+    labels1 = Spectral_Clustering.spectral_Clustering(points, k=2, graphType='symmetric')
 
 
-    Data_loader.plotData(points, labels=labels)
+    # cluster 2
+    points2 = Data_loader.load_data('../data/spectral_data/points_data.mat', clusterInd=2)
+
+    labels2 = Spectral_Clustering.spectral_Clustering(points2, k=2, graphType='symmetric')
+    
+    numClusters = 2
+    plt.rcParams['figure.figsize'] = [15, 7]
+    subplot, ax = plt.subplots(1, 2)
+
+
+    # scatter each cluster
+    for i in range(numClusters):
+        clusterInd = np.where(labels1 == i)
+        ax[0].scatter(points[clusterInd, 0], points[clusterInd, 1])
+
+    # scatter each cluster
+    for i in range(numClusters):
+        clusterInd = np.where(labels2 == i)
+        ax[1].scatter(points2[clusterInd, 0], points2[clusterInd, 1])
+
+    plt.savefig("clustersNoTitle.png", dpi=900)
+    plt.show()
 
 
 def main_segmentation():

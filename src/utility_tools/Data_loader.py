@@ -34,7 +34,7 @@ def plotData(points, labels=np.array([]), title=None):
 
         if title is not None:
             plt.title(title) 
-    
+
         plt.show()
 
 
