@@ -52,15 +52,6 @@ def main_segmentation():
 
     print(img.shape)
 
-    # img = img[500:900, 500:900, :]
-
-    # plt.imshow(img)
-    # plt.show()
-
-    # rescale
-    # img = Preprocessor.maxPoolImage_3d(img, k=6)
-    # img = Preprocessor.MeanImage_3d(img, k=6)
-
     k = 1/6
     imgDownScaled = Preprocessor.rescale(img, k)
 
@@ -143,25 +134,28 @@ def SEC_Segmentation():
 
     ################ plot ################### 
 
-    subplot, ax = plt.subplots(1, 3)
+    plt.rcParams['figure.figsize'] = [15, 7]
+    subplot, ax = plt.subplots(1, 2)
 
     # original image
-    ax[0].imshow(img)   
+    # ax[0].imshow(img)   
 
     # before preprocessing
     imgSegmented = img.copy()
     boundry = skimage.segmentation.find_boundaries(labels, mode='thick')
     imgSegmented[boundry, :] = [1, 0, 0]
 
-    ax[1].imshow(imgSegmented) 
+    ax[0].imshow(imgSegmented) 
     
     # after preprocessing
     imgSegmented2 = img.copy()
     boundry = skimage.segmentation.find_boundaries(new_labels, mode='thick')
     imgSegmented2[boundry, :] = [1, 0, 0]
 
-    ax[2].imshow(imgSegmented2) 
+    ax[1].imshow(imgSegmented2) 
     
+
+    plt.savefig("plane.png", dpi=500 )
     plt.show()
 
 
@@ -169,6 +163,5 @@ def SEC_Segmentation():
 
 if __name__ == '__main__':
 
-    # SEC_Segmentation()
-    # main_segmentation()
-    main_clustering()
+    SEC_Segmentation()
+    # clustering()
